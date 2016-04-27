@@ -1,9 +1,10 @@
 SNEKBOT_VERSION = "v0.3.0";
 CLOSE_FOOD_LIM = [50, 5];
-AWAY_SNEK_SZ = [3, 0.25];
+AWAY_SNEK_SZ = [4, 0.5];
 PANIC_RAD = 650;
 PANIC_PRIO = 25;
 FOOD_SZ = [1, 0.3, 0];
+HEAD_INFLATE = 3.5;
 dbgover = document.createElement("canvas");
 dbgctx = dbgover.getContext("2d");
 document.querySelector("body").appendChild(dbgover);
@@ -121,8 +122,11 @@ function foreach_snek_pt(f) {
 
 
 function is_occluded(x, y) {
-	return foreach_snek_pt(function (px, py, snek) {
+	return foreach_snek_pt(function (px, py, snek, sni, ipt) {
 		var sr = snek.sc * 14.5;
+		if(ipt == snek.pts.length - 1) {
+			sr *= HEAD_INFLATE;
+		}
 		if(in_circ(x, y, px, py, sr)) {
 			return true;
 		}
@@ -200,7 +204,7 @@ function away_from_nearest_snake() {
 	foreach_snek_pt(function (px, py, snek, sni, ipt) {
 		var sr = snek.sc * 14.5;
 		if(ipt == snek.pts.length - 1) {
-			sr *= 2.5;
+			sr *= HEAD_INFLATE;
 		}
 		if(closestpt == null) {
 			closestpt = [px, py];
@@ -247,10 +251,10 @@ function think() {
 		if(ipt % 5 == 0 || ipt == snek.pts.length - 1) {
 			var sr = snek.sc * 14.5;
 			if(ipt == snek.pts.length - 1) {
-				sr *= 2.5;
+				sr *= HEAD_INFLATE;
 			}
 			dbgctx.strokeStyle = '#f0f';
-			dbg_drawpt(px, py);
+			dbg_drawpt(px, py, sr * gsc);
 		}
 		return false;
 	});
