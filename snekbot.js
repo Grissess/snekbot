@@ -1,9 +1,9 @@
 SNEKBOT_VERSION = "v0.3.0";
-CLOSE_FOOD_LIM = [25, 5];
-AWAY_SNEK_SZ = [2, 0.25];
-PANIC_RAD = 350;
+CLOSE_FOOD_LIM = [50, 5];
+AWAY_SNEK_SZ = [3, 0.25];
+PANIC_RAD = 650;
 PANIC_PRIO = 25;
-FOOD_SZ = [1, 0.3, 0.4];
+FOOD_SZ = [1, 0.3, 0];
 dbgover = document.createElement("canvas");
 dbgctx = dbgover.getContext("2d");
 document.querySelector("body").appendChild(dbgover);
@@ -155,33 +155,33 @@ function NO_MOTIVE() { return CONST_MOTIVE(0); }
 function BAD_MOTIVE() { return CONST_MOTIVE(-1); }
 
 function food_norm(fd) {
-	return 1e4 / (fd.sz*fd.sz * FOOD_SZ[2] + fd.sz * FOOD_SZ[1] + FOOD_SZ[0]);
+	return (fd.sz*fd.sz * FOOD_SZ[2] + fd.sz * FOOD_SZ[1] + FOOD_SZ[0]);
 }
 
 function nearest_safe_food() {
 	if(foods.length < 1) return BAD_MOTIVE();
 	var closestfood = foods[0];
 	var closestnorm = norm(snake.xx, snake.yy, closestfood.xx, closestfood.yy);
-	var benefit = closestnorm * food_norm(closestfood);
+	var benefit = food_norm(closestfood) / closestnorm;
 	for(i = 1; i < foods.length; i++) {
 		var food = foods[i];
 		if(!food) continue;
 		var foodnorm = norm(snake.xx, snake.yy, food.xx, food.yy);
-		if(foodnorm > CLOSE_FOOD_LIM && foodnorm * food_norm(fd) < benefit) {
+		if(foodnorm > (CLOSE_FOOD_LIM[0] + snake.sc*CLOSE_FOOD_LIM[1]) && food_norm(food) / foodnorm > benefit) {
 			if(is_occluded(food.xx, food.yy)) {
 				dbgctx.strokeStyle = '#f00';
 				dbg_drawpt(food.xx, food.yy, 10);
 			} else {
 				closestfood = food;
 				closestnorm = foodnorm;
-				benefit = closestnorm * food_norm(closestfood);
+				benefit = food_norm(food) / foodnorm;
 			}
 		}
 	}
 	if(is_occluded(closestfood.xx, closestfood.yy)) {
 		return BAD_MOTIVE();
 	}
-	return [(closestfood.sz*closestfood.sz * FOOD_SZ[2] + closestfood.sz * FOOD_SZ[1] + FOOD_SZ[0])  / Math.max(closestnorm, 1), closestfood.xx - snake.xx, closestfood.yy - snake.yy];
+	return [benefit, closestfood.xx - snake.xx, closestfood.yy - snake.yy];
 }
 motive("nearest_safe_food", nearest_safe_food);
 
@@ -197,8 +197,11 @@ motive("circle_right", circle_right);
 
 function away_from_nearest_snake() {
 	var closestpt = null, closestnorm = -1, closestsns = null;
-	foreach_snek_pt(function (px, py, snek) {
+	foreach_snek_pt(function (px, py, snek, sni, ipt) {
 		var sr = snek.sc * 14.5;
+		if(ipt == snek.pts.length - 1) {
+			sr *= 2.5;
+		}
 		if(closestpt == null) {
 			closestpt = [px, py];
 			closestnorm = norm(snake.xx, snake.yy, px, py) - sr;
@@ -241,8 +244,11 @@ function think() {
 	dbg_init();
 	if(!snake) return;
 	foreach_snek_pt(function (px, py, snek, sni, ipt) {
-		if(ipt % 5 == 0) {
+		if(ipt % 5 == 0 || ipt == snek.pts.length - 1) {
 			var sr = snek.sc * 14.5;
+			if(ipt == snek.pts.length - 1) {
+				sr *= 2.5;
+			}
 			dbgctx.strokeStyle = '#f0f';
 			dbg_drawpt(px, py);
 		}
