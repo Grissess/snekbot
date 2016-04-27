@@ -34,15 +34,15 @@ function dbg_drawmot(mo, mores) {
 
 function dbg_drawscr(x, y, r) {
 	if(!r) r = 50;
-	dbgctx.beginPath();
+	//dbgctx.beginPath();
 	/*
 	dbgctx.moveTo(x-r, y);
 	dbgctx.lineTo(x+r, y);
 	dbgctx.moveTo(x, y-r);
 	dbgctx.lineTo(x, y+r);
 	*/
-	dbgctx.arc(x, y, r, 0, 2*Math.PI);
-	dbgctx.stroke();
+	//dbgctx.arc(x, y, r, 0, 2*Math.PI);
+	//dbgctx.stroke();
 }
 
 function dbg_drawcen(x, y, r) {
@@ -190,12 +190,12 @@ function nearest_safe_food() {
 motive("nearest_safe_food", nearest_safe_food);
 
 function circle_left() {
-	return [0, 100 * Math.cos(snake.eang + Math.PI / 2), 100 * Math.sin(snake.eang + Math.PI / 2)];
+	return [0, 100 * Math.cos(snake.ang + Math.PI / 2), 100 * Math.sin(snake.ang + Math.PI / 2)];
 }
 motive("circle_left", circle_left);
 
 function circle_right() {
-	return [0, 100 * Math.cos(snake.eang - Math.PI / 2), 100 * Math.sin(snake.eang - Math.PI / 2)];
+	return [0, 100 * Math.cos(snake.ang - Math.PI / 2), 100 * Math.sin(snake.ang - Math.PI / 2)];
 }
 motive("circle_right", circle_right);
 
