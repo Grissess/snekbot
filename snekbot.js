@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SnekBot
 // @namespace    http://tampermonkey.net/
-// @version      0.3.7
+// @version      0.3.9
 // @description  slither.io bot
 // @author       Grissess
 // @match        http://slither.io
@@ -10,15 +10,16 @@
 // ==/UserScript==
 
 if(!document.querySelector("#snekoverlay")) {
-	SNEKBOT_VERSION = "v0.3.7";
+	SNEKBOT_VERSION = "v0.3.9";
 	CLOSE_FOOD_LIM = [50, 5];
 	AWAY_SNEK_SZ = [500, 80];
 	AWAY_SNEK_NORM_F = 0.3;
-	PANIC_RAD = 999;
-	PANIC_PRIO = 25;
+	PANIC_RAD = 1750;
+    PANIC_STEP = 0.05;
+	PANIC_PRIO = 1000;
 	FOOD_SZ = [1, 0.3, 0];
 	HEAD_INFLATE = 3.5;
-	SANG_SZ = [0, 0.001];
+	SANG_SZ = [0, 0.0035];
 	DEBUG_DRAW = true;
 	dbgover = document.createElement("canvas");
 	dbgover.id = "snekoverlay";
@@ -44,7 +45,7 @@ if(!document.querySelector("#snekoverlay")) {
 	}
 
 	function dbg_drawmot(mo, mores) {
-		dbgctx.fillText("M:"+mo.name+": "+(mores[0])+", ("+(mores[1])+","+(mores[2])+")", 0, motpos);
+		dbgctx.fillText("M:"+mo.name+": "+(mores[0])+", ("+(mores[1])+","+(mores[2])+","+mores[3]+")", 0, motpos);
 		motpos += 12;
 	}
 
@@ -200,14 +201,15 @@ if(!document.querySelector("#snekoverlay")) {
 	}
 
 	function CONST_MOTIVE(benefit) {
-		return [benefit, snake.xx, snake.yy];
+		return [benefit, snake.xx, snake.yy, 0];
 	}
 
 	function NO_MOTIVE() { return CONST_MOTIVE(0); }
 	function BAD_MOTIVE() { return CONST_MOTIVE(-1); }
 
-	function MOTIVE_TOWARD(benefit, ang) {
-		return [benefit, 100 * Math.cos(ang), 100 * Math.sin(ang)];
+	function MOTIVE_TOWARD(benefit, ang, accel) {
+        if(accel == undefined) accel = 0;
+		return [benefit, 100 * Math.cos(ang), 100 * Math.sin(ang), accel];
 	}
 
 	function food_norm(fd) {
@@ -337,19 +339,19 @@ if(!document.querySelector("#snekoverlay")) {
 		if(!maxsnid) {
 			return BAD_MOTIVE();
 		}
-		return MOTIVE_TOWARD(SANG_SZ[0] + SANG_SZ[1] * maxfa, avg_ang[maxsnid] + Math.PI);
+		return MOTIVE_TOWARD(SANG_SZ[0] + SANG_SZ[1] * maxfa, avg_ang[maxsnid] + Math.PI, 1);
 	}
 	motive("snake_solid_angle", snake_solid_angle);
 
 
 	function panic_circles() {
-		for(var theta = 0; theta < 2 * Math.PI; theta += 0.05) {
+		for(var theta = 0; theta < 2 * Math.PI; theta += PANIC_STEP) {
 			if(!is_occluded(snake.xx + PANIC_RAD * Math.cos(theta), snake.yy + PANIC_RAD * Math.sin(theta))) {
 				return BAD_MOTIVE();
 			}
 		}
 		var left = circle_left();
-		return [PANIC_PRIO, left[1], left[2]];
+		return [PANIC_PRIO, left[1], left[2], 1];
 	}
 	motive("panic_circles", panic_circles);
 
@@ -382,6 +384,7 @@ if(!document.querySelector("#snekoverlay")) {
 				dbgctx.strokeStyle='#0f0';
 				xm = mot_res[i][1][1];
 				ym = mot_res[i][1][2];
+                setAcceleration(mot_res[i][1][3]);
 				dbg_drawcen(xm, ym);
 				dbgctx.strokeStyle='#f0f';
 				dbgctx.fillStyle='#f0f';
