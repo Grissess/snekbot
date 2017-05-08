@@ -10,7 +10,7 @@
 // ==/UserScript==
 
 if(!document.querySelector("#snekoverlay")) {
-	SNEKBOT_VERSION = "v0.3.9";
+	SNEKBOT_VERSION = "v0.3.9-filesystem";
 	CLOSE_FOOD_LIM = [50, 5];
 	AWAY_SNEK_SZ = [500, 80];
 	AWAY_SNEK_NORM_F = 0.3;
